@@ -1,6 +1,7 @@
 const http = require('http')
 const fs = require('fs')
 const url = require('url')
+const { stringify } = require('querystring')
 
 
 /* METHODS
@@ -162,6 +163,42 @@ http.createServer((req,res)=>{ // req => to send request, res => to send respons
             }
         })
         
+    }
+
+    // PUT METHOD : to update the product data
+    else if (pasrsedUrl.pathname =='/products' && req.method =='PUT'){
+
+        let product =''
+        req.on('data',(chunk)=>{
+            product +=chunk
+        })
+
+        req.on('end',()=>{
+            let productArray = JSON.parse(products)
+            let productObj = JSON.parse(product)
+
+            let index = productArray.findIndex((product)=>{
+                return product.id == pasrsedUrl.query.id
+            })
+
+            if (index != -1){
+                productArray[index] = productObj   
+
+                fs.writeFile('./products.json',JSON.stringify(productArray),(err)=>{
+                    if (err == null){
+                        res.end(JSON.stringify({message:'Product updated successfully'}))
+                    }
+                    else{
+                        res.end(JSON.stringify({message:"Failed to delete product"}))
+                    }
+                })   
+            }
+            else {
+                res.end(JSON.stringify({message:"Product Not found"})) 
+            }
+
+            
+        })
     }
 
 })
