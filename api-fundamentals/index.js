@@ -105,7 +105,7 @@ http.createServer((req,res)=>{ // req => to send request, res => to send respons
         }
     }
 
-        //SENDING DATA THROUGH POST - METHOD , CREATING A NEW PRODUCT
+    //SENDING DATA THROUGH POST - METHOD , CREATING A NEW PRODUCT
     else if (pasrsedUrl.pathname =='/products' && req.method =='POST'){
 
         // When data is send through POST method, the every data is send in form of chunks ie the entire data is not send as a whole
@@ -140,6 +140,29 @@ http.createServer((req,res)=>{ // req => to send request, res => to send respons
         })
     }
 
+    // DELETE method - Delete a product based on id
+
+    else if (pasrsedUrl.pathname =='/products' && req.method =='DELETE'){
+
+        let productArray = JSON.parse(products)
+
+        let index = productArray.findIndex((product)=>{
+            return product.id == pasrsedUrl.query.id
+        })
         
+        productArray.splice(index,1)
+        // splice(index,no.of elts to be delt from that index)
+
+        fs.writeFile("./products.json",JSON.stringify(productArray),(err)=>{
+            if (err == null){
+                res.end(JSON.stringify({message:'Product deleted successfully'}))
+            }
+            else{
+                res.end(JSON.stringify({message:"Failed to delete product"}))
+            }
+        })
+        
+    }
+
 })
 .listen(8000) // listen(port no.)
