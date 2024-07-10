@@ -80,6 +80,30 @@ http.createServer((req,res)=>{ // req => to send request, res => to send respons
 
     let pasrsedUrl = url.parse(req.url,true)
 
+
+    // --------------HANDILING CORS-----------------------------
+
+    /* To avoid any application to access the api data there is a default security system to prevent frontend servers to access api directly, therefore the below code sets permission to access the api.*/
+    res.setHeader('Access-Control-Allow-Origin','*') // This is to handle only GET requests
+    // the sec para (*) specifies the permission to any frontend app
+
+
+
+    /* Just like the above security for GET req, similar security is there for POST req which is handled in the same way as GET req, the below code is used to give access to POST req*/
+    res.setHeader('Access-Control-Allow-Headers','*')
+
+    res.setHeader("Access-Control-Allow-Methods","GET,PUT,POST,PATCH,DELETE,OPTIONS")
+    // This is used to decide which all reqs method can be used. Only the specified req method can be used.
+
+
+    /* When manipulative reqs like POST PUT DELETE PATCH are sent, first internally an OPTIONS req is sent(this internal option req is called preflight req), and only after a response is recieved for the OPTIONS req, the actual POST PUT DELETE or PATCH req is sent.*/
+    // The below code is to send a blank response when an OPTIONS  req is recieved so that the POST PUT DELETE or PATCH req will be sent
+    if (req.method == "OPTIONS")
+    {
+        res.end()
+    }
+        // -------------------------------------------
+
     // FETCH ALL PRODUCTS
     if (pasrsedUrl.pathname == '/products' && req.method =='GET' && pasrsedUrl.query.id == undefined){
         res.end(products)
