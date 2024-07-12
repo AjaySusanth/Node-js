@@ -1,21 +1,75 @@
 const express = require('express')
+const mongoose = require('mongoose')
 
 const app = express();
 
-//Creating an end point for GET req
-
-app.get('/products',(req,res)=>{
-    console.log("Get req recieved")
-    res.send({message:'Get products data'})
+// Database connection
+mongoose.connect('mongodb://localhost:27017/tutorial')
+.then(()=>{
+    console.log('Connected to db')
+})
+.catch((err)=>{
+    console.log(err)
 })
 
-// Get req with parameters
 
+// Creating Schema
+
+const productSchema = mongoose.Schema({
+    name:{
+        type:String,
+        required:[true,'Name is required']
+    },
+    price:{
+        type:Number,
+        required:[true,'Price is required'],
+        min:1
+    },
+    quantity:{
+        type:Number,
+        required:[true,'Quantity is required']
+    },
+    category:{
+        type:String,
+        enum:['Clothing','Electronics','Household']
+    }
+},{timestamps:true})
+
+const productModel = mongoose.model('products',productSchema)
+
+//Creating an end point for GET req : Getting all products
+
+app.get('/products',(req,res)=>{
+    productModel.find()
+    .then((products)=>{
+        res.send(products)
+    })
+    .catch((err)=>{
+        console.log(err)
+        res.send({message:'Failed to get products'})
+    })
+})
+
+// Get req with parameters : Getting products based on id
+
+/*
 app.get('/products/:id/:name',(req,res)=>{
     // http://localhost:8000/products/2/Ajay => id=2 and name=Ajay
     console.log(req.params.id)
     console.log(req.params.name)
     res.send({message:'Get products data'})
+})
+    */
+
+app.get('/products/:id',(req,res)=>{
+    productModel.findOne({_id:req.params.id})
+    .then((product)=>{
+        res.send(product)
+    })
+    .catch((err)=>{
+        console.log(err)
+        res.send({message:'Could not find product'})
+    })
 })
 
 // MIDDLEWARE
@@ -40,27 +94,49 @@ function middleware(req,res,next){
 
 
 
-// POST REQ
+// POST REQ - Create product
 
 app.use(express.json())
 /* express.json() is an inbulit middleware in express which recieves the req data in chunks and take care of all the things that was used to handle post req and the data is available in req.body */
 app.post('/products',(req,res)=>{
-    console.log(req.body)
-    res.send('POST req recieved')
+    let product = req.body
+
+    productModel.create(product)
+    .then((document)=>{ // mongodb records are called documents
+        res.send({data:document,message:'Product created'})
+    })
+    .catch((err)=>{
+        console.log(err)
+        res.send({message:'Failed to create product'})
+    })
 })
 
-// DELETE req
+// DELETE req : Delete product
 
 app.delete('/products/:id',(req,res)=>{
-    console.log(req.params.id)
-    res.send({message:"Delete successfull"})
+    productModel.deleteOne({_id:req.params.id})
+    .then(()=>{
+        res.send({message:"Delete successfull"})
+    })
+    .catch((err)=>{
+        console.log(err)
+        res.send({message:'Failed to delete product'})
+    })
+ 
 })
 
-// PUT req
+// PUT req : updating product based on id
 app.put('/products/:id',(req,res)=>{
-    console.log(req.params.id)
-    console.log(req.body)
-    res.send({message:"Update successfull"})
+    let product = req.body
+    productModel.updateOne({_id:req.params.id},product)
+    .then(()=>{
+        res.send({message:"Update successfull"})
+    })
+    .catch((err)=>{
+        console.log(err)
+        res.send({message:'Failed to update product'})
+    })
+
 })
 
 
