@@ -1,5 +1,6 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const jwt = require('jsonwebtoken')
 
 mongoose.connect('mongodb://localhost:27017/auth-demo')
 .then(()=>{
@@ -54,6 +55,45 @@ app.post('/register',(req,res)=>{
         }
     })
     
+})
+
+
+// Login endpoint
+
+let privateKey = 'samplekey'
+app.post('/login',(req,res)=>{
+    let userCred = req.body
+
+    userModel.findOne({email:userCred.email})
+    .then((user)=>{
+        
+        if (user!==null){
+            bcrypt.compare(userCred.password,user.password,(err,result)=>{
+                if (result==true){
+                    
+                    jwt.sign({email:userCred.email},privateKey,(err,token)=>{
+                        if (!err){
+                            res.send({message:'Login sucessfull',token:token})
+                        }
+                        else{
+                            res.send({message:'Some error,try again later'})
+                        }
+                    })
+                    
+                }
+                else{
+                    res.send({message:'Incorrect password'})
+                }
+            })
+        }
+        else{
+            res.send({message:'Invalid username'})
+        }
+    })
+    .catch((err)=>{
+        console.log(err)
+        res.send('Error occured')
+    })
 })
 
 app.listen(8000,()=>{
