@@ -70,7 +70,7 @@ app.post('/login',(req,res)=>{
         if (user!==null){
             bcrypt.compare(userCred.password,user.password,(err,result)=>{
                 if (result==true){
-                    
+                    // jwt token is send as a response to every client who is logged in to remenber in future that he has been logged in
                     jwt.sign({email:userCred.email},privateKey,(err,token)=>{
                         if (!err){
                             res.send({message:'Login sucessfull',token:token})
@@ -92,9 +92,32 @@ app.post('/login',(req,res)=>{
     })
     .catch((err)=>{
         console.log(err)
-        res.send('Error occured')
+        res.status(500).send('Error occured')
     })
 })
+
+
+// AUTHORIZATION: Creating an api end point which can be accessed only if you are logged in ie user have jwt token
+app.get('/getdata',verifyToken,(req,res)=>{
+    res.send({message:'Access granted'})
+})
+
+function verifyToken(req,res,next){
+
+    let token = req.headers.authorization.split(" ")[1]
+    console.log(token)
+    jwt.verify(token,privateKey,(err,data)=>{
+        if(!err){
+            console.log(data)
+            next()
+        }
+        else{
+            res.status(401).send({message:'Invalid token, login again'})
+            //Status code for invalid token,(just google to get the status code)
+        }
+    })
+}
+
 
 app.listen(8000,()=>{
     console.log('Server Running')
