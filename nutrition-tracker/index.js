@@ -43,6 +43,39 @@ app.post('/register',(req,res)=>{
 
 })
 
+
+// login endpoint
+
+app.post('/login',async (req,res)=>{
+    let userCred = req.body
+
+    try{
+        let user = await userModel.findOne({email:userCred.email})
+        if(user!==null){
+            bcrypt.compare(userCred.password,user.password,(err,result)=>{
+                if (result == true){
+                    jwt.sign({email:userCred.email},'nutrition-app',(err,token)=>{
+                        if(!err){
+                            res.send({message:'Login successfull',token:token})
+                        }
+                    })    
+                }
+                else{
+                    res.status(403).send({message:'Incorrect password'})
+                }
+            })
+        }
+        else{
+            res.status(404).send({message:'User not found'})
+        }
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).send({message:'Some problem'})
+    }
+
+})
+
 app.listen(8000,()=>{
     console.log('Server running')
 })
