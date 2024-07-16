@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 const userModel = require('./models/userModel')
+const foodModel = require('./models/foodModel')
+const verifyToken = require('./verifyToken')
 
 mongoose.connect('mongodb://localhost:27017/nutrition-tracker')
 .then(()=>{
@@ -68,6 +70,21 @@ app.post('/login',async (req,res)=>{
         else{
             res.status(404).send({message:'User not found'})
         }
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).send({message:'Some problem'})
+    }
+
+})
+
+
+// fetch all foods
+
+app.get('/foods',verifyToken,async (req,res)=>{
+    try{
+        let foods = await foodModel.find()
+        res.send(foods)
     }
     catch(err){
         console.log(err)
