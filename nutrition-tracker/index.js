@@ -93,6 +93,28 @@ app.get('/foods',verifyToken,async (req,res)=>{
 
 })
 
+// fetch food by name
+
+app.get('/foods/:name',verifyToken,async (req,res)=>{
+
+    try{
+        let food = await foodModel.find({name:{$regex:req.params.name,$options:'i'}})
+        // when find is used, exact matching is done, whereas regex checks the expression ie if paneer is the word, it return every item having word paneer and $options:'i' is used to make case-insensitive
+
+        if (food.length !==0){
+            res.send(food)
+        }
+        else{
+            res.status(404).send({message:'Food item not found'})
+        }
+
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).send({message:'Some problem'})
+    }
+})
+
 app.listen(8000,()=>{
     console.log('Server running')
 })
