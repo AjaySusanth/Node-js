@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 
 const userModel = require('./models/userModel')
 const foodModel = require('./models/foodModel')
+const trackingModel = require('./models/trackingModel')
 const verifyToken = require('./verifyToken')
 
 mongoose.connect('mongodb://localhost:27017/nutrition-tracker')
@@ -108,6 +109,38 @@ app.get('/foods/:name',verifyToken,async (req,res)=>{
             res.status(404).send({message:'Food item not found'})
         }
 
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).send({message:'Some problem'})
+    }
+})
+
+//endpoint to track food
+
+app.post('/track',verifyToken,async (req,res)=>{
+    let trackData = req.body
+
+    try{
+        let data = await trackingModel.create(trackData)
+        res.send({message:'Food added'})
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).send({message:'Some problem'})
+    }
+})
+
+// to fetch tracked foods
+
+// note that the date shoukd be passed in url in mm-dd-yyyy format
+app.get('/track/:userid/:date',verifyToken,async (req,res)=>{
+    let userid = req.params.userid
+    let date = new Date(req.params.date).toLocaleDateString()
+    console.log(date)
+    try{
+        let foods = await trackingModel.find({userId:userid,date:date}).populate('userId').populate('foodId')
+        res.send(foods)
     }
     catch(err){
         console.log(err)
